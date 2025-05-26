@@ -1,5 +1,10 @@
 var canvas = document.getElementById("renderCanvas");
-var engine = new BABYLON.Engine(canvas, true);
+
+// Cegah duplikasi engine jika di-run ulang
+if (!window.engine) {
+    window.engine = new BABYLON.Engine(canvas, true);
+}
+const engine = window.engine;
 
 var createScene = function () {
     var scene = new BABYLON.Scene(engine);
@@ -64,12 +69,27 @@ var createScene = function () {
 
     var car = BABYLON.Mesh.MergeMeshes([body, cabin, ...wheels], true, false, null, false, true);
     car.position = new BABYLON.Vector3(-40, 0, 0);
+    car.isPickable = true;
     shadowGenerator.addShadowCaster(car);
 
+    let speed = 0.05;
+    const minSpeed = 0.01;
+    const maxSpeed = 0.3;
+
     scene.onBeforeRenderObservable.add(() => {
-        car.position.x += 0.05;
+        car.position.x += speed;
         if (car.position.x > 40) {
             car.position.x = -40;
+        }
+    });
+
+    // Kontrol keyboard: W = tambah cepat, S = tambah pelan
+    window.addEventListener("keydown", (event) => {
+        const key = event.key.toLowerCase();
+        if (key === "w") {
+            speed = Math.min(speed * 1.2, maxSpeed);
+        } else if (key === "s") {
+            speed = Math.max(speed * 0.8, minSpeed);
         }
     });
 
